@@ -1,0 +1,136 @@
+cookies are kept to save the state of the cart files and cookies are kept here as a json string and cookies are extracted as json also when converting them to tate. these changes are only at the like bedore the cases.
+
+***********store.js - the store and state provider main file :
+
+
+import { useReducer, createContext } from "react";
+import Cookies from "js-cookie";
+
+
+export const Store = createContext()
+
+const initialstate = {
+    cart : Cookies.get('cart')? JSON.parse(Cookies.get('cart')):
+    {cartitems: []}
+}
+
+export const reducer = (state,action) => {
+    switch(action.type){
+        case "ADD_TO_CART":
+            const newitem = action.payload
+            const existitem = state.cart.cartitems.find((item)=>item.slug==newitem.slug)   ///we find only here, dont add
+
+            const cartitems = existitem
+            //if it does exist 
+            ?state.cart.cartitems.map((item)=>item.slug==existitem.slug?newitem:item)    //we add now
+            //if doesnt exist
+            :[...state.cart.cartitems, newitem]
+            
+            Cookies.set('cart', JSON.stringify({...state.cart, cartitems}))
+            return {...state, cart: {...state.cart, cartitems}}
+
+            case "DELETE_FROM_CART":
+                const deletedItem = action.payload;
+                const updatedCartItems = state.cart.cartitems.filter(
+                  (item) => item.slug !== deletedItem.slug
+                );
+                Cookies.set('cart', JSON.stringify({ ...state.cart, cartitems: updatedCartItems } ))
+                return { ...state, cart: { ...state.cart, cartitems: updatedCartItems } };
+
+    default : 
+        return state
+            
+    }
+}
+
+export function Storeprovider({children}){
+    const [state, dispatch] = useReducer(reducer,initialstate)
+    
+
+    return(
+        <Store.Provider value={{state,dispatch}}>{children}</Store.Provider>
+    )
+}
+
+
+************cartscreenjs the cart file :
+
+import { useContext } from "react";
+import { Store } from "./store";
+import Layout from "@/components/Layout";
+import Link from "next/link";
+import Image from "next/image";
+import dynamic from "next/dynamic";
+
+function Cartscreen () {
+    const {state, dispatch} = useContext(Store)
+
+    const {cart: {cartitems}} = state
+
+    console.log('putkimari')
+    console.log(JSON.stringify(cartitems))
+
+    const removeFromCart = (item) => {
+      dispatch({ type: "DELETE_FROM_CART", payload: item });
+    };
+
+    const updatecartHandler = (item, qty) => {
+      const quantity = Number(qty)
+      dispatch({type:"ADD_TO_CART",payload:{...item,quantity : quantity}})
+    }
+
+    const totalprice = 0
+
+    return(
+        <Layout>
+            <div className="grid md:grid-cols-5 md:gap-5">
+            <div className="overflow-x-auto md: col-span-3">
+            <table className="min-w-full">
+                <thead className="border-b">
+                    <tr>
+                    <th className="p-5 text-right">Item</th>
+                    <th className="p-5 text-right">Item</th>
+                    <th>Item</th>
+                    <th>Item</th>
+                    </tr>
+                </thead>
+                <tbody>
+  {cartitems.map((item) => (
+    <tr key={item.slug} className="border-b">
+      <td>
+        <Link legacyBehavior href={`/products/${item.slug}`}>
+          <a className="flex items-center">
+            <Image
+              src={item.image}
+              alt={item.name}
+              width={100}
+              height={100}
+            />
+            &nbsp;{item.name}
+          </a>
+        </Link>
+      </td>
+      <td className="p-5 text-right">
+      <select value={item.quantity} onChange={(e)=>updatecartHandler(item,e.target.value)}>
+      {[...Array(item.countinstock).keys()].map((x)=><option key={x+1} value={x+1}>{x+1}</option>)}
+      </select>
+      </td>
+      <td className="p-5 text-right">{item.price}</td>
+      <td className="text-right"><button onClick={()=>removeFromCart(item)}>X</button></td>
+      
+    </tr>
+  ))}
+  
+</tbody>
+<tfoot className="border-b">
+  subtotal : {cartitems.reduce((a,c)=>a+c.quantity*c.price,0)}
+  <button type="button" class="btn btn-primary">Checkout</button>
+</tfoot>
+            </table>
+            </div>
+            </div>
+        </Layout>
+    )
+}
+
+export default dynamic(()=>Promise.resolve(Cartscreen),{ssr:false})
