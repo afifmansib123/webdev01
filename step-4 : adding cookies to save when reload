@@ -1,0 +1,94 @@
+the only change in the cartscreen is the export 
+
+
+import { useContext } from "react";
+import { Store } from "./store";
+import dynamic from "next/dynamic";
+
+function cartitems(){
+    const {state,dispatch} = useContext(Store)
+
+    const {cart: {cartitems}} = state
+
+
+    const handledelete = (item) => {
+        dispatch({type : "DELETE", payload : item})
+    }
+
+    return(
+        <table>
+            <thead>
+                <tr>
+                    <td>item</td>
+                    <td>item</td>
+                    <td>item</td>
+                </tr>
+            </thead>
+            <tbody>
+                {cartitems.map((item)=>
+                <tr key={item.slug}>
+                    <td>{item.name}</td>
+                    <td><img src = {item.image} height={20} width={20}></img></td>
+                    <td>{item.quantity}</td>
+                    <td><button onClick={()=>handledelete(item)}>X</button></td>
+                </tr>
+                )}
+            </tbody>
+        </table>
+    )
+}
+
+export default dynamic(()=>Promise.resolve(cartitems),{ssr:false})
+
+
+now in the main store page npm i js-cookies and make the changes :
+
+import { createContext, useReducer } from "react"
+import React from "react"
+import Cookies from "js-cookie"
+
+export const INITIAL_STATE = {
+    cart : Cookies.get('cart')?JSON.parse(Cookies.get('cart'))
+        :{cartitems : []}
+    
+}
+
+export const reducerfunc = (state,action) => {
+    switch(action.type){
+        case "ADD":
+            //find exist or not
+            const newitem = action.payload
+            const existornot = state.cart.cartitems.find((item)=>item.slug===newitem.slug)
+            //if it does, lets put it as the newitem
+            const cartitems=existornot
+            //as we found a match
+            ?state.cart.cartitems.map((item)=>item.slug==existornot.slug?newitem:item)
+            //as no matches found
+            :[...state.cart.cartitems, newitem]
+
+            Cookies.set('cart', JSON.stringify({...state.cart, cartitems}))
+            return {...state, cart:{...state.cart, cartitems}}
+
+        case "DELETE":
+            const deleteitem = action.payload
+            const finditem = state.cart.cartitems.filter((item)=>item.slug !== deleteitem.slug)
+
+            Cookies.set('cart', JSON.stringify({ ...state.cart, cartitems: finditem }))
+            return { ...state, cart: { ...state.cart, cartitems: finditem } }
+
+        default : 
+        return state
+    }
+}
+
+export const Store = createContext()
+
+export const Stateprovider = ({children}) => {
+    const [state,dispatch] = useReducer(reducerfunc,INITIAL_STATE)
+    return(
+        <Store.Provider value={{state,dispatch}}>{children}</Store.Provider>
+    )
+}     
+
+
+
