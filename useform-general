@@ -1,0 +1,29 @@
+
+import { useForm } from "react-hook-form"
+const loginscreen = () => {
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+      } = useForm()
+
+      const submitfunc = (data) => {
+        alert(data.email + 'has password' + data.password)
+      }
+      
+    return(
+        <form onSubmit={handleSubmit(submitfunc)}>
+            <label>email</label>
+            <input id="email" {...register('email')}></input>
+            <label>
+                password
+            </label>
+            <input id = "password" {...register('password')}></input>
+            <button type = "submit">press me</button>
+              
+        </form>
+    )
+}
+export default loginscreen
