@@ -1,3 +1,7 @@
+*****1
+
+
+
 
 import { useForm } from "react-hook-form"
 const loginscreen = () => {
@@ -21,6 +25,52 @@ const loginscreen = () => {
                 password
             </label>
             <input id = "password" {...register('password')}></input>
+            <button type = "submit">press me</button>
+              
+        </form>
+    )
+}
+export default loginscreen
+
+
+
+
+******2
+
+
+
+import { useForm } from "react-hook-form"
+const loginscreen = () => {
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+      } = useForm()
+
+      const submitfunc = ({email,password}) => {
+        alert(email+password)
+      }
+      
+    return(
+        <form onSubmit={handleSubmit(submitfunc)}>
+            <label>email</label>
+            <input type = "email" 
+            {...register('email', {
+                required: 'enter email',
+                pattern: {
+                    value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$/i,
+                    message: 'Please enter valid email',
+                  },
+            })}
+            />{errors.email && (<div>{errors.email.message}</div>)}
+            <input
+            {...register('password', {
+                required: 'enter password',
+                minLength: {value:7, message: 'mis 7 chars'}
+            })}
+            />{errors.password && (<div>{errors.password.message}</div>)}
             <button type = "submit">press me</button>
               
         </form>
