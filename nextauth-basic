@@ -1,0 +1,101 @@
+[...nextauth].js file :
+
+
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+export default NextAuth({
+  providers: [
+    CredentialsProvider({
+      authorize(credentials) {
+
+        const user = {
+          email: 'john@example.com',
+          password: 'password123', // Plain text password (not hashed)
+        };
+
+        if (
+          credentials.email === user.email &&
+          credentials.password === user.password
+        ) {
+          console.log('found')
+        } else {
+            console.log('not found')
+        }
+      },
+    }),
+  ],
+});
+
+
+
+signin.js file :
+
+import Link from 'next/link';
+import React, { useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useForm } from 'react-hook-form';
+
+
+
+const LoginScreen = () => {
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm();
+  const submitHandler =  ({ email, Password }) => {
+    
+      const result =  signIn('credentials', {
+        redirect: false,
+        email: email,
+        password: Password,
+      })
+  
+      if (result?.error) {
+        console.error('Authentication failed:', result.error);
+        // Show some error message to the user
+      } else {
+        console.log(result);
+        // Redirect the user to the desired location
+      }
+    }  
+  return (
+   
+      <form
+        className="mx-auto max-w-screen-md"
+        onSubmit={handleSubmit(submitHandler)}
+      >
+        <h1 className="mb-4 text-xl">Login</h1>
+        <div className="mb-4">
+          <label htmlFor="email">email</label>
+          <input
+            type="email"
+            {...register('email')}
+            className="w-full"
+            id="email"
+
+          ></input>
+  
+        </div>
+        <div className="mb-4">
+          <label htmlFor="Password">Password</label>
+          <input
+            type="Password"
+            {...register('Password')}
+            className="w-full"
+            id="Password"
+            autoFocus
+          ></input>
+          
+        </div>
+        <div className="mb-4 ">
+          <button className="primary-button">Login</button>
+        </div>
+       
+      </form>
+    
+  );
+}
+
+export default LoginScreen
