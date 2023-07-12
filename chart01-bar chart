@@ -1,0 +1,62 @@
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js'
+
+import { Bar } from 'react-chartjs-2'
+import { useState,useEffect } from 'react'
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend, 
+)
+
+const Mychart = () => {
+    const [chartdata, setchartdata] = useState({
+        datasets : []
+    })
+    const [options, setoptions] = useState({})
+
+    useEffect(()=>{
+        setchartdata({
+            labels : ["D2s", "V2", "V2sMini", "D2 Dual", "T3mini"],
+            datasets: [
+                {
+                    label : "this is the selling data for sunmi machines",
+                    data : [130,140,160,180,120],
+                    borderColor: "rgb(120,130,120)",
+                    backgroundColor : "rgb(120,130,120)"
+                }
+            ]
+        });
+        setoptions({
+            responsive : true,
+            plugins : {
+                legend : {
+                    position : "top",
+                },
+                title : {
+                    display : true,
+                    text : "sales summary"
+                }
+            }
+        })
+    },[])
+
+    return (
+        <div>
+            <Bar options={options} data={chartdata}/>
+        </div>
+    )
+}
+
+export default Mychart
